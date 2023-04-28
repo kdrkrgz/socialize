@@ -1,0 +1,2 @@
+Environment: development
+DbConnectionString: host=0.0.0.0;user=postgres;dbname=socialize;port=5432;sslmode=disable"

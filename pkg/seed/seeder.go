@@ -11,11 +11,9 @@ import (
 
 func InitialDataSeed() {
 	db := openConnection()
-	//defer dbConnection.Close()
 	seeds := All()
 	if err := db.AutoMigrate(&users.User{}); err == nil && db.Migrator().HasTable(&users.User{}) {
 		if err := db.First(&users.User{}).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-			//Run seed
 			runSeeder(db, seeds["Users"])
 		}
 	}

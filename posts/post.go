@@ -1,9 +1,13 @@
 package posts
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type Post struct {
-	gorm.Model
-	UserID  uint   `gorm:"not null" json:"user_id"`
-	Content string `gorm:"type:text;not null" json:"content"`
+	ID        uint      `gorm:"primarykey"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	UserID    uint      `gorm:"not null" json:"userId"`
+	Content   string    `gorm:"type:text;not null" json:"content"`
 }
