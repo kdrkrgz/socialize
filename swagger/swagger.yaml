@@ -1,0 +1,20 @@
+basePath: /
+host: http://localhost:8000
+info:
+  contact: {}
+  description: Swagger for Socalize app
+  license:
+    name: Apache License, Version 2.0 (the "License")
+    url: https://github.com/acikkaynak/deprem-yardim-backend-go/blob/main/LICENSE
+  title: Socalize API
+  version: "1.0"
+paths: {}
+schemes:
+- https
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-Api-Key
+    type: apiKey
+swagger: "2.0"

@@ -1,2 +1,12 @@
 Environment: development
-DbConnectionString: host=0.0.0.0;user=postgres;dbname=socialize;port=5432;sslmode=disable"
+AppPort: 8000
+
+DbHost: 0.0.0.0
+DbPort: 5432
+DbUser: postgres
+DbName: socialize
+SSLMode: disable
+
+TokenExpiredIn: 60m
+TokenMaxAge: 60
+TokenSecret: ultr@-s3cr3t-jwt-5tr1ng

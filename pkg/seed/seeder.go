@@ -33,6 +33,14 @@ func runSeeder(db *gorm.DB, seeds []Seed) {
 func openConnection() *gorm.DB {
 	// Seed the database with some initial data with initial migration
 	dsn := "host=0.0.0.0 user=postgres dbname=socialize port=5432 sslmode=disable"
+
+	//dsn := fmt.Sprintf("host:%s user=%s dbname=%s port=%s sslmode=%s",
+	//	conf.Get("DbHost"),
+	//	conf.Get("DbUser"),
+	//	conf.Get("DbName"),
+	//	conf.Get("DbPort"),
+	//	conf.Get("SSLMode"))
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")

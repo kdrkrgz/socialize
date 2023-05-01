@@ -5,6 +5,15 @@ import (
 	"github.com/kdrkrgz/socalize/repository"
 )
 
+// GetUsers godoc
+//
+//	@Summary	Get Users
+//	@Tags		Users
+//	@Produce	json
+//	@Success	200		{object}	[]users.User
+//	@Param		body		users.UsersResponse	true	"RequestBody"
+//	@Security	ApiKeyAuth
+//	@Router		/users [GET]
 func GetUsers(repo *repository.Repository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		users, err := repo.GetUsers()

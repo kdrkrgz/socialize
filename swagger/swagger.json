@@ -1,0 +1,27 @@
+{
+    "schemes": [
+        "https",
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Swagger for Socalize app",
+        "title": "Socalize API",
+        "contact": {},
+        "license": {
+            "name": "Apache License, Version 2.0 (the \"License\")",
+            "url": "https://github.com/acikkaynak/deprem-yardim-backend-go/blob/main/LICENSE"
+        },
+        "version": "1.0"
+    },
+    "host": "http://localhost:8000",
+    "basePath": "/",
+    "paths": {},
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "X-Api-Key",
+            "in": "header"
+        }
+    }
+}
