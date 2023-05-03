@@ -11,8 +11,7 @@ import (
 //	@Tags		Users
 //	@Produce	json
 //	@Success	200		{object}	[]users.User
-//	@Param		body		users.UsersResponse	true	"RequestBody"
-//	@Security	ApiKeyAuth
+//	@Security	Bearer
 //	@Router		/users [GET]
 func GetUsers(repo *repository.Repository) fiber.Handler {
 	return func(c *fiber.Ctx) error {

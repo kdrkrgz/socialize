@@ -4,8 +4,10 @@ import (
 	"fmt"
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/kdrkrgz/socalize/conf"
 	"github.com/kdrkrgz/socalize/handler"
+	"github.com/kdrkrgz/socalize/middleware"
 	log "github.com/kdrkrgz/socalize/pkg/logger"
 	"github.com/kdrkrgz/socalize/pkg/seed"
 	"github.com/kdrkrgz/socalize/repository"
@@ -22,27 +24,36 @@ type Application struct {
 
 func (a *Application) Register() {
 	a.app.Get("/", handler.RedirectSwagger)
-	a.app.Get("/users", handler.GetUsers(a.repo))
+	a.app.Get("/users", middleware.DeserializeUser, handler.GetUsers(a.repo))
 	route := a.app.Group("/swagger")
+	authRoute := a.app.Group("/auth")
+	authRoute.Post("/signin", handler.SignUp(a.repo))
 	route.Get("*", swagger.HandlerDefault)
 }
 
 // @title						Socalize API
 // @version					    1.0
 // @description				    Swagger for Socalize app
-// @host						http://localhost:8000
+// @host						localhost:8000
 // @BasePath					/
-// @schemes					    https http
+// @schemes					    http
 // @license.name				Apache License, Version 2.0 (the "License")
 // @license.url				    https://github.com/acikkaynak/deprem-yardim-backend-go/blob/main/LICENSE
-// @securityDefinitions.apiKey	ApiKeyAuth
-// @in							header
-// @name						X-Api-Key
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	seed.InitialDataSeed()
 	repo := repository.New()
 	defer repo.Close()
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:8000",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowMethods:     "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
+		AllowCredentials: true,
+	}))
 	application := &Application{app: app, repo: repo}
 	application.Register()
 

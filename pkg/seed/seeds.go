@@ -8,7 +8,7 @@ import (
 func All() map[string][]Seed {
 	hashedPass, _ := utils.HashPassword("pass123")
 	seedData := map[string][]Seed{
-		"Users": {
+		"InitialData": {
 			Seed{
 				Name: "user1",
 				Run: func(db *gorm.DB) error {

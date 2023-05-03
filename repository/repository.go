@@ -97,7 +97,7 @@ func (repo *Repository) GetUsers() ([]users.User, error) {
 
 		var u users.User
 		err := query.Scan(
-			&u.ID,
+			&u.Id,
 			&u.CreatedAt,
 			&u.UpdatedAt,
 			&u.Username,
@@ -112,4 +112,55 @@ func (repo *Repository) GetUsers() ([]users.User, error) {
 		userCollection = append(userCollection, u)
 	}
 	return userCollection, nil
+}
+
+func (repo *Repository) GetUserByEmail(email string) *users.User {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	selectBuilder := psql.Select("*").From("users").Where(sq.Eq{"email": email})
+	newSql, args, err := selectBuilder.ToSql()
+	if err != nil {
+		return nil
+	}
+	row := repo.pool.QueryRow(ctx, newSql, args...)
+	var u users.User
+	if err := row.Scan(
+		&u.Id,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+		&u.Username,
+		&u.Email,
+		&u.Phone,
+		&u.Password,
+		&u.FirstName,
+		&u.LastName); err != nil {
+		return nil
+	}
+	return &u
+}
+
+func (repo *Repository) GetUserById(id uint) *users.User {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	// TODO: check id - check create jwt and lib
+	selectBuilder := psql.Select("*").From("users").Where(sq.Eq{"id": id})
+	newSql, args, err := selectBuilder.ToSql()
+	if err != nil {
+		return nil
+	}
+	row := repo.pool.QueryRow(ctx, newSql, args...)
+	var u users.User
+	if err := row.Scan(
+		&u.Id,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+		&u.Username,
+		&u.Email,
+		&u.Phone,
+		&u.Password,
+		&u.FirstName,
+		&u.LastName); err != nil {
+		return nil
+	}
+	return &u
 }

@@ -5,9 +5,9 @@ import (
 )
 
 type UserProfile struct {
-	ID        uint      `gorm:"primarykey"`
+	Id        uint      `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	UserID    uint
-	Bio       string `json:"bio"`
+	UserID    uint      `json:"userId"`
+	Bio       string    `json:"bio"`
 }

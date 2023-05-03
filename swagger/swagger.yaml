@@ -1,5 +1,57 @@
 basePath: /
-host: http://localhost:8000
+definitions:
+  posts.Post:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  users.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      phone:
+        type: string
+      posts:
+        items:
+          $ref: '#/definitions/posts.Post'
+        type: array
+      profile:
+        $ref: '#/definitions/users.UserProfile'
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  users.UserProfile:
+    properties:
+      bio:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+host: localhost:8000
 info:
   contact: {}
   description: Swagger for Socalize app
@@ -8,13 +60,29 @@ info:
     url: https://github.com/acikkaynak/deprem-yardim-backend-go/blob/main/LICENSE
   title: Socalize API
   version: "1.0"
-paths: {}
+paths:
+  /users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/users.User'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get Users
+      tags:
+      - Users
 schemes:
-- https
 - http
 securityDefinitions:
-  ApiKeyAuth:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
     in: header
-    name: X-Api-Key
+    name: Authorization
     type: apiKey
 swagger: "2.0"

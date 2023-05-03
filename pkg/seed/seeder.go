@@ -14,7 +14,7 @@ func InitialDataSeed() {
 	seeds := All()
 	if err := db.AutoMigrate(&users.User{}); err == nil && db.Migrator().HasTable(&users.User{}) {
 		if err := db.First(&users.User{}).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-			runSeeder(db, seeds["Users"])
+			runSeeder(db, seeds["InitialData"])
 		}
 	}
 
