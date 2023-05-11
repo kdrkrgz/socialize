@@ -13,6 +13,37 @@ definitions:
       userId:
         type: integer
     type: object
+  users.SignInInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  users.SignUpInput:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      passwordConfirm:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - passwordConfirm
+    - username
+    type: object
   users.User:
     properties:
       createdAt:
@@ -33,6 +64,8 @@ definitions:
         type: array
       profile:
         $ref: '#/definitions/users.UserProfile'
+      role:
+        type: string
       updatedAt:
         type: string
       username:
@@ -48,7 +81,7 @@ definitions:
         type: integer
       updatedAt:
         type: string
-      userID:
+      userId:
         type: integer
     type: object
 host: localhost:8000
@@ -61,6 +94,44 @@ info:
   title: Socalize API
   version: "1.0"
 paths:
+  /auth/signin:
+    post:
+      parameters:
+      - description: Login
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/users.SignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - Auth
+  /auth/signup:
+    post:
+      parameters:
+      - description: Register
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/users.SignUpInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Register
+      tags:
+      - Auth
   /users:
     get:
       produces:

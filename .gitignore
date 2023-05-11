@@ -24,3 +24,6 @@ go.work
 # Ide
 .DS_Store
 .idea/
+
+# air
+.tmp/

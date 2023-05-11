@@ -114,6 +114,24 @@ func (repo *Repository) GetUsers() ([]users.User, error) {
 	return userCollection, nil
 }
 
+func (repo *Repository) CreateUser(u *users.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	insertBuilder := psql.Insert("users").
+		Columns("username", "email", "phone", "password", "first_name", "last_name").
+		Values(u.Username, u.Email, u.Phone, u.Password, u.FirstName, u.LastName).
+		Suffix("RETURNING \"id\"")
+	newSql, args, err := insertBuilder.ToSql()
+	if err != nil {
+		return fmt.Errorf("could not format query : %w", err)
+	}
+	row := repo.pool.QueryRow(ctx, newSql, args...)
+	if err := row.Scan(&u.Id); err != nil {
+		return fmt.Errorf("could not scan id: %w", err)
+	}
+	return nil
+}
+
 func (repo *Repository) GetUserByEmail(email string) *users.User {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -132,6 +150,7 @@ func (repo *Repository) GetUserByEmail(email string) *users.User {
 		&u.Email,
 		&u.Phone,
 		&u.Password,
+		&u.Role,
 		&u.FirstName,
 		&u.LastName); err != nil {
 		return nil

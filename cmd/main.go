@@ -24,10 +24,12 @@ type Application struct {
 
 func (a *Application) Register() {
 	a.app.Get("/", handler.RedirectSwagger)
+	a.app.Get("/healthcheck", handler.HealthCheck)
 	a.app.Get("/users", middleware.DeserializeUser, handler.GetUsers(a.repo))
 	route := a.app.Group("/swagger")
 	authRoute := a.app.Group("/auth")
-	authRoute.Post("/signin", handler.SignUp(a.repo))
+	authRoute.Post("/signup", handler.SignUp(a.repo))
+	authRoute.Post("/signin", handler.SignIn(a.repo))
 	route.Get("*", swagger.HandlerDefault)
 }
 
