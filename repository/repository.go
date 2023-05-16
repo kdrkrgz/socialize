@@ -103,6 +103,7 @@ func (repo *Repository) GetUsers() ([]users.User, error) {
 			&u.Username,
 			&u.Email,
 			&u.Phone,
+			&u.Role,
 			&u.Password,
 			&u.FirstName,
 			&u.LastName)
@@ -176,6 +177,7 @@ func (repo *Repository) GetUserById(id uint) *users.User {
 		&u.Username,
 		&u.Email,
 		&u.Phone,
+		&u.Role,
 		&u.Password,
 		&u.FirstName,
 		&u.LastName); err != nil {

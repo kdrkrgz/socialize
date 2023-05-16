@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/kdrkrgz/socalize/conf"
 	"github.com/kdrkrgz/socalize/repository"
+	resp "github.com/kdrkrgz/socalize/utils"
 	"strconv"
 	"strings"
 )
@@ -21,7 +22,8 @@ func DeserializeUser(c *fiber.Ctx) error {
 	}
 
 	if tokenString == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "message": "You are not logged in"})
+		return c.Status(fiber.StatusUnauthorized).JSON(
+			resp.ErrorResponse(resp.ApiErrors("UnAuthorized")))
 	}
 
 	tokenByte, err := jwt.Parse(tokenString, func(jwtToken *jwt.Token) (interface{}, error) {
@@ -32,7 +34,8 @@ func DeserializeUser(c *fiber.Ctx) error {
 		return []byte(conf.Get("TokenSecret")), nil
 	})
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "message": fmt.Sprintf("invalidate token: %v", err)})
+		return c.Status(fiber.StatusUnauthorized).JSON(
+			resp.ErrorResponse(resp.ApiErrors("InvalidToken")))
 	}
 
 	claims, ok := tokenByte.Claims.(jwt.MapClaims)
@@ -41,13 +44,12 @@ func DeserializeUser(c *fiber.Ctx) error {
 
 	}
 
-	var repo repository.Repository
-	id, err := strconv.Atoi(fmt.Sprintf("%v", claims["sub"]))
-	fmt.Println("IDDD", id)
+	repo := repository.New()
+	claimsSub := claims["sub"].(map[string]interface{})
+	id, err := strconv.Atoi(fmt.Sprintf("%v", claimsSub["id"]))
 	user := repo.GetUserById(uint(id))
-
-	if fmt.Sprintf("%v", user.Id) != claims["sub"] {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"status": "fail", "message": "the user belonging to this token no logger exists"})
+	if float64(user.Id) != claimsSub["id"] {
+		return c.Status(fiber.StatusForbidden).JSON(resp.ErrorResponse(resp.ApiErrors("UserNotExist")))
 	}
 
 	//c.Locals("user", models.FilterUserRecord(&user))
