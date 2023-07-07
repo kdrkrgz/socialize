@@ -1,14 +1,25 @@
 package handler
 
 import (
+	"strings"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/kdrkrgz/socalize/conf"
 	"github.com/kdrkrgz/socalize/repository"
 	"github.com/kdrkrgz/socalize/users"
 	"github.com/kdrkrgz/socalize/utils"
 	"golang.org/x/crypto/bcrypt"
-	"strings"
-	"time"
+)
+
+const (
+	cookieName       = "jwt"
+	tokenMessage     = "Success"
+	errorMessage     = "Something went wrong"
+	passwordMatch    = "Password and Password Confirmation must be the same"
+	invalidReqBody   = "Invalid request body"
+	invalidCreds     = "Invalid credentials"
+	userCreateFailed = "Failed to create user"
 )
 
 // SignIn godoc
@@ -26,14 +37,14 @@ func SignIn(repo *repository.Repository) fiber.Handler {
 
 		if err := c.BodyParser(&payload); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Invalid request body",
+				"message": invalidReqBody,
 			})
 		}
 
 		user := repo.GetUserByEmail(payload.Email)
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": "Invalid credentials",
+				"message": invalidCreds,
 			})
 		}
 		ttl, _ := time.ParseDuration(conf.Get("TokenExpiredIn"))
@@ -41,16 +52,21 @@ func SignIn(repo *repository.Repository) fiber.Handler {
 		token, err := utils.GenerateToken(ttl, user, conf.Get("TokenSecret"))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Something went wrong",
+				"message": errorMessage,
 			})
 		}
-		cookie := new(fiber.Cookie)
-		cookie.Name = "jwt"
-		cookie.Value = token
-		cookie.Expires = time.Now().Add(ttl)
+		cookie := &fiber.Cookie{
+			Name:     cookieName,
+			Value:    token,
+			Expires:  time.Now().Add(ttl),
+			SameSite: fiber.CookieSameSiteStrictMode,
+			HTTPOnly: true,
+			Secure:   true,
+			MaxAge:   int(ttl.Seconds()),
+		}
 		c.Cookie(cookie)
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "Success",
+			"message": tokenMessage,
 			"token":   token,
 		})
 	}
@@ -70,26 +86,22 @@ func SignUp(repo *repository.Repository) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		var payload *users.SignUpInput
 		if err := ctx.BodyParser(&payload); err != nil {
-			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Invalid request body",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, invalidReqBody)
 		}
-		errors := users.ValidateStruct(payload)
-		if errors != nil {
+
+		if errors := users.ValidateStruct(payload); errors != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(errors)
 		}
+
 		if payload.Password != payload.PasswordConfirm {
-			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Password and Password Confirmation must be the same",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, passwordMatch)
 		}
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Something went wrong",
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, errorMessage)
 		}
+
 		newUser := &users.User{
 			Email:     strings.ToLower(payload.Email),
 			Password:  string(hashedPassword),
@@ -97,14 +109,30 @@ func SignUp(repo *repository.Repository) fiber.Handler {
 			LastName:  payload.LastName,
 			Username:  payload.Username,
 		}
-		result := repo.CreateUser(newUser)
-		if result.Error != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Something went wrong",
-			})
+
+		if err := repo.CreateUser(newUser); err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, userCreateFailed)
 		}
+
+		ttl, _ := time.ParseDuration(conf.Get("TokenExpiredIn"))
+		token, err := utils.GenerateToken(ttl, newUser, conf.Get("TokenSecret"))
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, errorMessage)
+		}
+
+		cookie := fiber.Cookie{
+			Name:     cookieName,
+			Value:    token,
+			Expires:  time.Now().Add(ttl),
+			SameSite: fiber.CookieSameSiteStrictMode,
+			HTTPOnly: true,
+			Secure:   true,
+			MaxAge:   int(ttl.Seconds()),
+		}
+		ctx.Cookie(&cookie)
+
 		return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-			"message": "Success",
+			"message": tokenMessage,
 			"data": fiber.Map{
 				"user": users.FilterUserRecord(newUser),
 			},

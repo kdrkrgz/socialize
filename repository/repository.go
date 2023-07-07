@@ -3,6 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
+	"os"
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -10,8 +13,6 @@ import (
 	l "github.com/kdrkrgz/socalize/pkg/logger"
 	"github.com/kdrkrgz/socalize/users"
 	"go.uber.org/zap"
-	"os"
-	"time"
 )
 
 var (
@@ -79,10 +80,25 @@ func (repo *Repository) Close() {
 	repo.pool.Close()
 }
 
-func (repo *Repository) GetUsers() ([]users.User, error) {
+func (repo *Repository) GetUsers() ([]users.UsersResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	selectBuilder := psql.Select("*").From("users")
+	selectBuilder := psql.Select("users.id",
+		"users.created_at",
+		"users.updated_at",
+		"users.username",
+		"users.email",
+		"users.phone",
+		"users.role",
+		"users.password",
+		"users.first_name",
+		"users.last_name",
+		"user_profiles.bio",
+		"user_profiles.id",
+		"user_profiles.created_at",
+		"user_profiles.updated_at",
+	).From("users").
+		LeftJoin("user_profiles ON users.id = user_profiles.user_id")
 	newSql, args, err := selectBuilder.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("could not format query : %w", err)
@@ -92,10 +108,11 @@ func (repo *Repository) GetUsers() ([]users.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not query users: %w", err)
 	}
-	userCollection := make([]users.User, 0)
-	for query.Next() {
+	defer query.Close()
 
-		var u users.User
+	userCollection := make([]users.UsersResponse, 0)
+	for query.Next() {
+		var u users.UsersResponse
 		err := query.Scan(
 			&u.Id,
 			&u.CreatedAt,
@@ -106,11 +123,19 @@ func (repo *Repository) GetUsers() ([]users.User, error) {
 			&u.Role,
 			&u.Password,
 			&u.FirstName,
-			&u.LastName)
+			&u.LastName,
+			&u.Profile.Bio,
+			&u.Profile.Id,
+			&u.Profile.CreatedAt,
+			&u.Profile.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}
 		userCollection = append(userCollection, u)
+	}
+	if err := query.Err(); err != nil {
+		return nil, err
 	}
 	return userCollection, nil
 }

@@ -1,9 +1,10 @@
 package users
 
 import (
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/kdrkrgz/socalize/posts"
-	"time"
 )
 
 type User struct {
@@ -19,6 +20,27 @@ type User struct {
 	Role      string       `gorm:"default:user" json:"role"`
 	Posts     []posts.Post `gorm:"foreignKey:UserID" json:"posts"`
 	Profile   UserProfile  `gorm:"foreignKey:UserID" json:"profile"`
+}
+
+type UsersResponse struct {
+	Id        uint                 `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time            `json:"createdAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
+	Username  string               `gorm:"unique" json:"username"`
+	Email     string               `gorm:"unique" json:"email"`
+	Phone     *string              `gorm:"unique;default:null" json:"phone"`
+	Password  string               `json:"-"`
+	FirstName string               `json:"first_name"`
+	LastName  string               `json:"last_name"`
+	Role      string               `gorm:"default:user" json:"role"`
+	Profile   UsersProfileResponse `gorm:"foreignKey:UserID" json:"profile"`
+}
+
+type UsersProfileResponse struct {
+	Id        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Bio       string    `json:"bio"`
 }
 
 type SignUpInput struct {
