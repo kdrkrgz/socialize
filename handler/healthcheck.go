@@ -7,3 +7,7 @@ func HealthCheck(ctx *fiber.Ctx) error {
 		"message": "OK",
 	})
 }
+
+func Readiness(ctx *fiber.Ctx) error {
+	return ctx.Status(fiber.StatusOK).SendString("OK")
+}

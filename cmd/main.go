@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -12,9 +16,6 @@ import (
 	"github.com/kdrkrgz/socalize/pkg/seed"
 	"github.com/kdrkrgz/socalize/repository"
 	_ "github.com/kdrkrgz/socalize/swagger"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 type Application struct {
@@ -25,6 +26,7 @@ type Application struct {
 func (a *Application) Register() {
 	a.app.Get("/", handler.RedirectSwagger)
 	a.app.Get("/healthcheck", handler.HealthCheck)
+	a.app.Get("/readiness", handler.Readiness)
 	a.app.Get("/users", middleware.DeserializeUser, handler.GetUsers(a.repo))
 	route := a.app.Group("/swagger")
 	authRoute := a.app.Group("/auth")
